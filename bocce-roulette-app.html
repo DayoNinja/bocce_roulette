@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Bocce Roulette</title>
+<link href="https://fonts.googleapis.com/css2?family=Teko:wght@600;700&family=Barlow+Condensed:wght@400;600;700&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --orange:#E8600A;--orange-dark:#B34A06;
+  --green:#2A6E2A;--green-dark:#1A4A1A;
+  --gold:#B7860B;--dark:#0D1B14;--dark2:#162010;--dark3:#1E2D1E;
+  --cream:#FDFBF7;--muted:#6A7A6A;--silver:#B0B8BF;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+html,body{font-family:'Barlow',sans-serif;background:var(--dark);color:var(--cream);min-height:100vh;overflow-x:hidden;}
+.nav{display:flex;background:#060E09;border-bottom:2px solid var(--orange);position:sticky;top:0;z-index:100;}
+.nav-tab{flex:1;padding:13px 4px;text-align:center;font-family:'Teko',sans-serif;font-size:17px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#4A6A4A;cursor:pointer;border-bottom:3px solid transparent;transition:all .2s;user-select:none;}
+.nav-tab.active{color:var(--orange);border-bottom-color:var(--orange);}
+.page{display:none;padding:16px 14px 60px;max-width:640px;margin:0 auto;}
+.page.active{display:block;}
+.logo-header{text-align:center;padding:8px 0 2px;}
+.logo-header img{height:95px;width:auto;}
+.logo-sub{font-family:'Barlow Condensed',sans-serif;font-size:10px;letter-spacing:.3em;text-transform:uppercase;color:var(--muted);font-weight:600;margin-top:2px;}
+.section-label{font-family:'Teko',sans-serif;font-size:18px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--orange);margin-bottom:8px;padding-bottom:3px;border-bottom:1px solid rgba(232,96,10,.3);}
+.player-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;}
+.player-input-wrap{position:relative;}
+.player-num{position:absolute;left:9px;top:50%;transform:translateY(-50%);font-family:'Teko',sans-serif;font-size:15px;font-weight:700;color:var(--orange);}
+.player-input{width:100%;padding:9px 9px 9px 28px;background:var(--dark2);border:1.5px solid #2A3D2A;border-radius:6px;color:var(--cream);font-family:'Barlow Condensed',sans-serif;font-size:14px;font-weight:600;outline:none;transition:border-color .2s;}
+.player-input:focus{border-color:var(--orange);}
+.player-input::placeholder{color:#3A5040;}
+.btn-row{display:flex;gap:8px;margin-bottom:10px;}
+.big-btn{width:100%;padding:14px;background:var(--orange);border:none;border-radius:8px;font-family:'Teko',sans-serif;font-size:22px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:white;cursor:pointer;transition:background .2s,transform .1s;}
+.big-btn:active{transform:scale(.97);}
+.big-btn.secondary{background:transparent;border:2px solid var(--orange);color:var(--orange);font-size:15px;padding:10px;}
+.win-target-row{display:flex;align-items:center;gap:10px;margin-bottom:16px;}
+.win-target-row span{font-family:'Barlow Condensed',sans-serif;font-size:13px;color:var(--muted);}
+.num-input{width:64px;padding:7px;text-align:center;background:var(--dark2);border:1.5px solid #2A3D2A;border-radius:6px;color:var(--cream);font-family:'Teko',sans-serif;font-size:20px;font-weight:700;outline:none;-moz-appearance:textfield;}
+.num-input::-webkit-inner-spin-button,.num-input::-webkit-outer-spin-button{-webkit-appearance:none;}
+.score-header{display:flex;justify-content:space-between;align-items:center;padding:8px 0 12px;}
+.round-badge{font-family:'Teko',sans-serif;font-size:16px;font-weight:700;color:var(--muted);letter-spacing:.1em;}
+.round-badge span{color:var(--orange);font-size:26px;}
+.ghost-btn{background:none;border:1px solid #2A3D2A;color:var(--muted);border-radius:5px;padding:5px 10px;font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:700;letter-spacing:.1em;cursor:pointer;text-transform:uppercase;}
+.score-table{width:100%;border-collapse:collapse;margin-bottom:16px;}
+.score-table th{font-family:'Teko',sans-serif;font-size:12px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;padding:6px 8px;text-align:left;background:#060E09;color:var(--muted);border-bottom:2px solid var(--orange);}
+.score-table th.r{text-align:right;}
+.score-table td{padding:8px;border-bottom:1px solid #1E2D1E;vertical-align:middle;}
+.rank-badge{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:50%;font-family:'Teko',sans-serif;font-size:13px;font-weight:700;background:var(--dark2);color:var(--muted);margin-right:7px;flex-shrink:0;}
+.rank-1{background:var(--gold);color:white;}.rank-2{background:var(--silver);color:var(--dark);}.rank-3{background:#7A5030;color:white;}
+.player-name-cell{display:flex;align-items:center;font-family:'Barlow Condensed',sans-serif;font-size:15px;font-weight:700;}
+.score-pts{font-family:'Teko',sans-serif;font-size:26px;font-weight:700;text-align:right;line-height:1;}
+.score-pts.leading{color:var(--orange);}
+.pct-label{font-family:'Barlow Condensed',sans-serif;font-size:9px;color:var(--muted);font-weight:700;text-align:right;}
+.win-bar-track{height:5px;background:#1E2D1E;border-radius:3px;overflow:hidden;margin-top:2px;}
+.win-bar-fill{height:100%;background:var(--orange);border-radius:3px;transition:width .4s ease;}
+.win-bar-fill.close{background:var(--gold);}.win-bar-fill.winning{background:#4CAF50;}
+.scoring-panel{background:var(--dark2);border:1.5px solid #2A3D2A;border-radius:10px;padding:14px;margin-bottom:14px;}
+.scoring-panel .section-label{font-size:15px;margin-bottom:8px;}
+.upset-row{display:flex;align-items:center;gap:10px;margin-bottom:10px;padding:8px 10px;background:var(--dark3);border-radius:6px;border:1px solid #2A3D2A;}
+.upset-label{font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);flex:1;}
+.upset-label.on{color:#E74C3C;}
+.toggle-btn{width:44px;height:24px;border-radius:12px;background:#2A3D2A;border:none;cursor:pointer;position:relative;transition:background .2s;flex-shrink:0;}
+.toggle-btn.on{background:#E74C3C;}
+.toggle-knob{width:18px;height:18px;border-radius:50%;background:white;position:absolute;top:3px;left:3px;transition:left .2s;}
+.toggle-btn.on .toggle-knob{left:23px;}
+.score-input-rows{display:flex;flex-direction:column;gap:5px;margin-bottom:10px;}
+.score-input-row{background:var(--dark3);border-radius:8px;padding:8px 10px;display:flex;align-items:center;gap:8px;}
+.srow-name{font-family:'Barlow Condensed',sans-serif;font-size:14px;font-weight:700;color:var(--cream);flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.srow-col{display:flex;flex-direction:column;align-items:center;gap:2px;}
+.srow-lbl{font-family:'Barlow Condensed',sans-serif;font-size:7px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);}
+.bps{display:flex;gap:3px;}
+.bps-btn{width:28px;height:28px;border-radius:5px;background:var(--dark2);border:1.5px solid #2A3D2A;color:var(--muted);font-family:'Teko',sans-serif;font-size:16px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s;}
+.bps-btn.sel{background:var(--orange);border-color:var(--orange);color:white;}
+.bps-btn.usel{background:#C0392B;border-color:#C0392B;color:white;}
+.stepper{display:flex;align-items:center;gap:3px;}
+.step-btn{width:26px;height:28px;border-radius:5px;background:var(--dark2);border:1px solid #2A3D2A;color:var(--cream);font-family:'Teko',sans-serif;font-size:18px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+.step-btn:active{background:var(--orange);}
+.cdp{width:34px;text-align:center;font-family:'Teko',sans-serif;font-size:20px;font-weight:700;background:var(--dark2);border:1px solid #2A3D2A;border-radius:5px;padding:2px 0;line-height:1.3;color:var(--cream);}
+.cdp.pos{color:#4CAF50;}.cdp.neg{color:#EF5350;}
+.srow-total{font-family:'Teko',sans-serif;font-size:22px;font-weight:700;min-width:32px;text-align:right;line-height:1;}
+.srow-total.pos{color:#4CAF50;}.srow-total.neg{color:#EF5350;}.srow-total.zero{color:var(--muted);}
+.hint-row{font-family:'Barlow Condensed',sans-serif;font-size:9px;font-weight:600;letter-spacing:.08em;color:var(--muted);margin-bottom:8px;padding:0 2px;}
+.submit-btn{width:100%;padding:13px;background:var(--green);border:none;border-radius:8px;font-family:'Teko',sans-serif;font-size:21px;font-weight:700;letter-spacing:.1em;color:white;cursor:pointer;}
+.submit-btn:active{background:var(--green-dark);transform:scale(.98);}
+.history-section .section-label{margin-bottom:8px;}
+.hist-round{background:var(--dark2);border-radius:8px;padding:9px 12px;margin-bottom:7px;border-left:3px solid #2A3D2A;}
+.hist-title{font-family:'Teko',sans-serif;font-size:13px;font-weight:700;color:var(--muted);letter-spacing:.1em;display:flex;justify-content:space-between;align-items:center;margin-bottom:5px;}
+.undo-btn{font-size:10px;background:none;border:1px solid #3A5040;color:var(--muted);border-radius:3px;padding:2px 6px;cursor:pointer;font-family:'Barlow Condensed',sans-serif;font-weight:700;letter-spacing:.1em;}
+.hist-rows{display:flex;flex-direction:column;gap:3px;}
+.hist-row{display:flex;justify-content:space-between;align-items:center;}
+.hist-name{font-family:'Barlow Condensed',sans-serif;font-weight:700;color:var(--cream);flex:1;font-size:12px;}
+.hist-detail{font-family:'Barlow Condensed',sans-serif;color:var(--muted);font-size:10px;margin:0 6px;}
+.hist-tot{font-family:'Teko',sans-serif;font-size:16px;font-weight:700;min-width:30px;text-align:right;}
+.hist-tot.pos{color:#4CAF50;}.hist-tot.neg{color:#EF5350;}.hist-tot.zero{color:var(--muted);}
+.upset-badge{font-family:'Barlow Condensed',sans-serif;font-size:9px;font-weight:700;background:rgba(192,57,43,.2);color:#EF5350;border:1px solid #EF5350;border-radius:3px;padding:1px 5px;letter-spacing:.1em;}
+.win-screen{display:none;position:fixed;inset:0;background:rgba(0,0,0,.93);z-index:200;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:30px;}
+.win-screen.show{display:flex;}
+.win-emoji{font-size:48px;margin-bottom:8px;}
+.win-title{font-family:'Teko',sans-serif;font-size:58px;font-weight:700;color:var(--orange);line-height:1;letter-spacing:.05em;}
+.win-name{font-family:'Teko',sans-serif;font-size:42px;font-weight:700;color:white;line-height:1;margin-bottom:4px;}
+.win-score{font-family:'Barlow Condensed',sans-serif;font-size:16px;color:var(--muted);letter-spacing:.2em;text-transform:uppercase;margin-bottom:24px;}
+/* RULES */
+.rules-wrap{padding:10px 0 60px;}
+.rl-logo{text-align:center;padding:6px 0 10px;}
+.rl-logo-text{font-family:'Teko',sans-serif;font-size:26px;font-weight:700;color:var(--orange);letter-spacing:.1em;}
+.rl-logo-sub{font-family:'Barlow Condensed',sans-serif;font-size:9px;letter-spacing:.25em;color:var(--muted);text-transform:uppercase;font-weight:600;}
+.rb{margin-bottom:14px;}
+.rb h2{font-family:'Teko',sans-serif;font-size:16px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--orange);margin-bottom:4px;padding-left:9px;border-left:3px solid var(--orange);}
+.rb p,.rb li{font-size:11.5px;line-height:1.55;color:#A0B8A0;padding-left:9px;}
+.rb ul,.rb ol{padding-left:22px;}
+.rb li{margin-bottom:3px;padding-left:0;}
+.rhl{background:rgba(232,96,10,.1);border-left:3px solid var(--orange);padding:5px 9px;margin-top:4px;border-radius:0 4px 4px 0;font-size:10.5px;color:#B0C8B0;}
+.cmg{display:grid;grid-template-columns:1fr 1fr;gap:5px;margin-top:5px;}
+.cm{background:var(--dark2);border-radius:5px;padding:5px 7px;border-left:3px solid #2A3D2A;}
+.cm.oc{border-left-color:var(--orange);}.cm.bc{border-left-color:var(--green);}.cm.mc{border-left-color:var(--gold);}.cm.nk{border-left-color:#F4D03F;background:#0D1B14;}
+.cm-num{font-family:'Teko',sans-serif;font-size:12px;font-weight:700;color:var(--muted);}
+.cm-name{font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:700;color:var(--cream);}
+.cm-txt{font-size:9px;line-height:1.4;color:#6A8A6A;margin-top:1px;}
+.cm-pts{font-size:9px;color:var(--orange);font-weight:700;margin-top:2px;font-family:'Barlow Condensed',sans-serif;}
+@media(max-width:380px){.player-grid{grid-template-columns:1fr;}.cmg{grid-template-columns:1fr;}.bps-btn{width:25px;height:25px;font-size:14px;}}
+</style>
+</head>
+<body>
+<nav class="nav">
+  <div class="nav-tab active" onclick="showPage('setup')" id="tab-setup">Setup</div>
+  <div class="nav-tab" onclick="showPage('score')" id="tab-score">Scoreboard</div>
+  <div class="nav-tab" onclick="showPage('rules')" id="tab-rules">Rules</div>
+</nav>
+
+<div class="win-screen" id="winScreen">
+  <div class="win-emoji">🏆💣🏆</div>
+  <div class="win-title">WINNER!</div>
+  <div class="win-name" id="winName"></div>
+  <div class="win-score" id="winScore"></div>
+  <button class="big-btn" style="max-width:260px;margin-bottom:10px" onclick="closeWin()">Continue</button>
+  <button class="big-btn secondary" style="max-width:260px" onclick="newGame()">New Game</button>
+</div>
+
+<!-- SETUP -->
+<div class="page active" id="page-setup">
+  <div class="logo-header"><img id="setupLogo" src="" alt="Bocce Roulette"><div class="logo-sub">A Hilton Family Game</div></div>
+  <div style="margin-top:14px">
+    <div class="section-label">Players (2–8)</div>
+    <div class="player-grid" id="playerGrid"></div>
+    <div class="btn-row">
+      <button class="big-btn secondary" style="flex:1" onclick="removePlayer()">− Remove</button>
+      <button class="big-btn secondary" style="flex:1" onclick="addPlayer()">+ Add</button>
+    </div>
+    <div class="section-label" style="margin-top:10px">Win Target</div>
+    <div class="win-target-row">
+      <span>First to</span>
+      <input type="number" id="winTarget" value="40" min="10" max="200" class="num-input">
+      <span>points wins</span>
+    </div>
+    <button class="big-btn" onclick="startGame()">START GAME 💣</button>
+  </div>
+</div>
+
+<!-- SCOREBOARD -->
+<div class="page" id="page-score">
+  <div class="score-header">
+    <div class="round-badge">Round <span id="roundNum">1</span></div>
+    <button class="ghost-btn" onclick="newGame()">New Game</button>
+  </div>
+  <table class="score-table">
+    <thead><tr><th>Player</th><th class="r">Score</th><th class="r" style="min-width:80px">Progress</th></tr></thead>
+    <tbody id="scoreTableBody"></tbody>
+  </table>
+  <div class="scoring-panel">
+    <div class="section-label">Round <span id="addRoundNum" style="color:var(--cream)">1</span> Scoring</div>
+    <div class="upset-row">
+      <div class="upset-label" id="upsetLabel">💣 #95 The Upset active?</div>
+      <button class="toggle-btn" id="upsetToggle" onclick="toggleUpset()"><div class="toggle-knob"></div></button>
+    </div>
+    <div class="score-input-rows" id="scoreInputRows"></div>
+    <div class="hint-row">Ball pts: tap 0·1·2·3 &nbsp;·&nbsp; Card pts: +/− for bonuses &amp; penalties &nbsp;·&nbsp; Total = auto</div>
+    <button class="submit-btn" onclick="submitRound()">✓ SUBMIT ROUND</button>
+  </div>
+  <div class="history-section">
+    <div class="section-label">History</div>
+    <div id="historyList"></div>
+  </div>
+</div>
+
+<!-- RULES -->
+<div class="page" id="page-rules">
+<div class="rules-wrap">
+  <div class="rl-logo"><div class="rl-logo-text">💣 BOCCE ROULETTE</div><div class="rl-logo-sub">Rules · v3.0 · A Hilton Family Game</div></div>
+
+  <div class="rb"><h2>Objective</h2><p>First to <strong>40 pts</strong> wins. Avg 7–8 rounds. Tiebreak: highest score. Yellow ball is target.</p></div>
+
+  <div class="rb"><h2>The Deck</h2>
+    <p>One shuffled deck — all 3 card types mixed. Each player draws one per round.</p>
+    <ul>
+      <li><strong>Gold Max Challenge</strong> — Mandatory. Announce A or B before round.</li>
+      <li><strong>Orange Challenge</strong> — Announce accept or decline before round. Removed either way.</li>
+      <li><strong>Green Bomb Card</strong> — Say "I have a Bomb Card." Keep power secret. Hold until you play it.</li>
+    </ul>
+    <div class="rhl"><strong>Played = Removed.</strong> If deck runs out, reshuffle discarded Orange &amp; Gold back in. Played Bomb cards are permanently gone.</div>
+  </div>
+
+  <div class="rb"><h2>Round Structure</h2>
+    <ol>
+      <li>Player A places yellow ball.</li>
+      <li>Player B picks throwing location.</li>
+      <li>Player C throws first — all throw 1st ball in turn.</li>
+      <li>All throw 2nd ball same order.</li>
+      <li>Two furthest balls each earn one bonus reroll.</li>
+      <li>Cards resolved at stated timing, then scoring.</li>
+      <li>Rotate roles clockwise.</li>
+    </ol>
+    <div class="rhl">Equidistant balls → measure to nearest cm. Still tied → rock-paper-scissors.</div>
+  </div>
+
+  <div class="rb"><h2>Scoring</h2>
+    <ul><li>Closest → <strong>3 pts</strong></li><li>2nd closest → <strong>2 pts</strong></li><li>3rd closest → <strong>1 pt</strong></li><li>Furthest → <strong>0 pts</strong></li></ul>
+    <div class="rhl"><strong>Top 2</strong> = your ball is closest or 2nd closest on the field. Ball position — not score.</div>
+  </div>
+
+  <div class="rb"><h2>Bomb Card Rules</h2>
+    <ul>
+      <li><strong>One per round</strong> per player. #94 Nope is always playable as reaction.</li>
+      <li>Announce "I have a Bomb Card" when drawn. Keep power secret.</li>
+      <li>Played or Nope'd = permanently removed from game.</li>
+    </ul>
+  </div>
+
+  <div class="rb"><h2>Max Challenge (Gold) Rules</h2>
+    <ul>
+      <li>Cannot be declined — choose A (bail, lose pts) or B (attempt, big payoff or big penalty).</li>
+      <li><strong>#22:</strong> If not in last place — discard and draw again.</li>
+    </ul>
+  </div>
+
+  <div class="rb"><h2>Card Conflict Rule</h2>
+    <p>Two cards conflict → higher-numbered card wins. Lower card discarded, no effect, no penalty.</p>
+  </div>
+
+  <div class="rb"><h2>Definitions</h2>
+    <ul>
+      <li><strong>Footstep</strong> = adult heel-to-toe (~12in). Witnessed by all.</li>
+      <li><strong>Opposite-handed</strong> = non-dominant hand. Decide before game.</li>
+      <li><strong>Wrist-to-stomach</strong> = wrist touches stomach at release.</li>
+      <li><strong>Seated throw</strong> = fully seated, both legs forward. No kneeling.</li>
+      <li><strong>Nuclear Bomb Card</strong> = cannot be Nope'd.</li>
+    </ul>
+    <div class="rhl">House Rule: Funniest reasonable interpretation wins. Dad is final referee. Appeals court is closed.</div>
+  </div>
+
+  <div class="rb"><h2>🟠 Challenge Cards</h2>
+  <div class="cmg">
+    <div class="cm oc"><div class="cm-num">#12</div><div class="cm-name">Assassin</div><div class="cm-txt">Knock closest ball away, finish Top 2.</div><div class="cm-pts">✓+3 ✗−2</div></div>
+    <div class="cm oc"><div class="cm-num">#13</div><div class="cm-name">Gambler</div><div class="cm-txt">Your ball finishes closest.</div><div class="cm-pts">✓+4 ✗−2</div></div>
+    <div class="cm oc"><div class="cm-num">#14</div><div class="cm-name">Sniper</div><div class="cm-txt">After 1st throws, name a ball. Hit it with 2nd throw.</div><div class="cm-pts">✓+1 throw ✗−2</div></div>
+    <div class="cm oc"><div class="cm-num">#15</div><div class="cm-name">Bulldozer</div><div class="cm-txt">Full-force throw contacts any ball.</div><div class="cm-pts">✓+2 ✗−2</div></div>
+    <div class="cm oc"><div class="cm-num">#16</div><div class="cm-name">Hero Shot</div><div class="cm-txt">Opposite-hand throw must finish Top 2.</div><div class="cm-pts">✓+3 ✗−3</div></div>
+    <div class="cm oc"><div class="cm-num">#17</div><div class="cm-name">Ball Swap</div><div class="cm-txt">After 1st throws, swap ball position. Must finish Top 2.</div><div class="cm-pts">✓+3 ✗−2</div></div>
+    <div class="cm oc"><div class="cm-num">#18</div><div class="cm-name">Redirect</div><div class="cm-txt">One throw deflects off any object. Top 2.</div><div class="cm-pts">✓+4 ✗−2</div></div>
+    <div class="cm oc"><div class="cm-num">#19</div><div class="cm-name">Double or Nothing</div><div class="cm-txt">Before 2nd throw. Win = 2× pts. Fail = 0 pts.</div><div class="cm-pts">✓2× ✗0</div></div>
+    <div class="cm oc"><div class="cm-num">#20</div><div class="cm-name">Jack Thief</div><div class="cm-txt">Move yellow 2 steps. Must win round.</div><div class="cm-pts">✓+3 ✗−2</div></div>
+  </div></div>
+
+  <div class="rb"><h2>⭐ Max Challenge Cards (Gold — Mandatory)</h2>
+  <div class="cmg">
+    <div class="cm mc"><div class="cm-num">#21</div><div class="cm-name">Kingslayer</div><div class="cm-txt">A:−3 · B: Your ball closer than score leader's.</div><div class="cm-pts">✓+6 ✗−5</div></div>
+    <div class="cm mc"><div class="cm-num">#22</div><div class="cm-name">Last Stand</div><div class="cm-txt">Last place only (else draw again). A:−4 · B: Win round.</div><div class="cm-pts">✓+8 ✗−6</div></div>
+    <div class="cm mc"><div class="cm-num">#23</div><div class="cm-name">Wrist Lock</div><div class="cm-txt">A:−4 · B: Wrist to stomach every throw. Top 2.</div><div class="cm-pts">✓+8 ✗−6</div></div>
+    <div class="cm mc"><div class="cm-num">#24</div><div class="cm-name">Dizzy Roulette</div><div class="cm-txt">A:−4 · B: Spin 10× before each throw. Top 2.</div><div class="cm-pts">✓+8 ✗−6</div></div>
+    <div class="cm mc"><div class="cm-num">#25</div><div class="cm-name">Ground Game</div><div class="cm-txt">A:−3 · B: All throws seated on ground. Top 2.</div><div class="cm-pts">✓+8 ✗−5</div></div>
+    <div class="cm mc"><div class="cm-num">#26</div><div class="cm-name">Long Walk</div><div class="cm-txt">A:−3 · B: 20 steps back. Must finish closest.</div><div class="cm-pts">✓+8 ✗−5</div></div>
+  </div></div>
+
+  <div class="rb"><h2>💣 Bomb Cards (Green)</h2>
+  <div class="cmg">
+    <div class="cm bc"><div class="cm-num">#72</div><div class="cm-name">Shift</div><div class="cm-txt">After 1st throws. Move any ball 5 footsteps any direction.</div></div>
+    <div class="cm bc"><div class="cm-num">#73</div><div class="cm-name">Jackpot</div><div class="cm-txt">Any time. +3 pts. No other card this round.</div><div class="cm-pts">+3 pts</div></div>
+    <div class="cm bc"><div class="cm-num">#74</div><div class="cm-name">Revenge</div><div class="cm-txt">React: another player earns 4+ bonus — halve it, you get the cut.</div></div>
+    <div class="cm bc"><div class="cm-num">#76</div><div class="cm-name">Grand Theft Bocce</div><div class="cm-txt">After 1st throws. Swap your ball position with any other.</div></div>
+    <div class="cm bc"><div class="cm-num">#81</div><div class="cm-name">Free Toss</div><div class="cm-txt">Before scoring. Take one extra throw.</div><div class="cm-pts">+1 throw</div></div>
+    <div class="cm bc"><div class="cm-num">#82</div><div class="cm-name">Bonus Round</div><div class="cm-txt">Skip scoring this round. +1 throw in each of next 2 rounds.</div></div>
+    <div class="cm bc"><div class="cm-num">#88</div><div class="cm-name">Freeze</div><div class="cm-txt">After 1st throws. Lowest card # player loses 2nd throw.</div></div>
+    <div class="cm bc"><div class="cm-num">#92</div><div class="cm-name">Cursed Arm</div><div class="cm-txt">Before a throw. Highest card # other player throws next ball opposite-handed.</div></div>
+    <div class="cm bc"><div class="cm-num">#94</div><div class="cm-name">Nope</div><div class="cm-txt">React: cancel any Bomb card just played. Always playable. Can't cancel Nuclear.</div></div>
+    <div class="cm bc"><div class="cm-num">#95</div><div class="cm-name">The Upset</div><div class="cm-txt">Before scoring. Furthest=3pts, 2nd=2pts, 3rd=1pt, closest=0pts. Ball pts only flipped.</div></div>
+    <div class="cm nk"><div class="cm-num" style="color:#F4D03F">☢ #97</div><div class="cm-name">Atomic Meltdown</div><div class="cm-txt">Before round. All others: −5 pts + opposite-handed all round. Can't be Nope'd.</div></div>
+    <div class="cm nk"><div class="cm-num" style="color:#F4D03F">☢ #100</div><div class="cm-name">Yellow Ball Revenge</div><div class="cm-txt">After 1st throws. Move yellow 2 steps. Others move closest 2 steps away. You move yours 4 steps any direction. Can't be Nope'd.</div></div>
+  </div></div>
+
+</div>
+</div>
+
+<script>
+const LOGO='';
+let players=[],scores=[],history=[],roundNum=1,winTarget=40,gameStarted=false;
+let upsetActive=false,ballPts=[],cardPts=[];
+
+function initSetup(){
+  document.getElementById('playerGrid').innerHTML='';
+  [1,2,3].forEach(()=>addPlayer());
+}
+function addPlayer(){
+  const grid=document.getElementById('playerGrid');
+  const n=grid.querySelectorAll('.player-input').length+1;
+  if(n>8)return;
+  const w=document.createElement('div');
+  w.className='player-input-wrap';
+  w.innerHTML=`<span class="player-num">${n}</span><input class="player-input" type="text" placeholder="Player ${n}" maxlength="12">`;
+  grid.appendChild(w);
+}
+function removePlayer(){
+  const inputs=document.querySelectorAll('.player-input-wrap');
+  if(inputs.length<=2)return;
+  inputs[inputs.length-1].remove();
+}
+function startGame(){
+  players=Array.from(document.querySelectorAll('.player-input')).map((el,i)=>el.value.trim()||`Player ${i+1}`);
+  if(players.length<2)return;
+  winTarget=parseInt(document.getElementById('winTarget').value)||40;
+  scores=players.map(()=>0);history=[];roundNum=1;gameStarted=true;
+  buildScorePage();showPage('score');
+}
+function newGame(){gameStarted=false;showPage('setup');}
+
+function buildScorePage(){
+  renderTable();renderPanel();renderHistory();
+  document.getElementById('roundNum').textContent=roundNum;
+  document.getElementById('addRoundNum').textContent=roundNum;
+}
+
+function renderTable(){
+  const sorted=players.map((n,i)=>({n,s:scores[i],i})).sort((a,b)=>b.s-a.s);
+  const body=document.getElementById('scoreTableBody');body.innerHTML='';
+  sorted.forEach((p,rank)=>{
+    const pct=Math.min(100,Math.round(p.s/winTarget*100));
+    const bc=pct>=100?'winning':pct>=80?'close':'';
+    const rc=rank===0?'rank-1':rank===1?'rank-2':rank===2?'rank-3':'';
+    const pc=rank===0?'leading':'';
+    const rem=Math.max(0,winTarget-p.s);
+    const tr=document.createElement('tr');
+    tr.innerHTML=`<td><div class="player-name-cell"><div class="rank-badge ${rc}">${rank+1}</div>${esc(p.n)}</div></td>
+      <td><div class="score-pts ${pc}">${p.s}</div></td>
+      <td><div class="pct-label">${rem} left</div><div class="win-bar-track"><div class="win-bar-fill ${bc}" style="width:${pct}%"></div></div></td>`;
+    body.appendChild(tr);
+  });
+}
+
+function renderPanel(){
+  ballPts=players.map(()=>0);cardPts=players.map(()=>0);
+  upsetActive=false;updateUpsetUI();
+  const c=document.getElementById('scoreInputRows');c.innerHTML='';
+  players.forEach((name,i)=>{
+    const row=document.createElement('div');row.className='score-input-row';
+    row.innerHTML=`
+      <div class="srow-name">${esc(name)}</div>
+      <div class="srow-col">
+        <div class="srow-lbl">Ball Pts</div>
+        <div class="bps" id="bps-${i}">
+          ${[0,1,2,3].map(v=>`<button class="bps-btn${v===0?' sel':''}" onclick="setBall(${i},${v})">${v}</button>`).join('')}
+        </div>
+      </div>
+      <div class="srow-col">
+        <div class="srow-lbl">Card Pts</div>
+        <div class="stepper">
+          <button class="step-btn" onclick="stepCard(${i},-1)">−</button>
+          <div class="cdp" id="cdp-${i}">0</div>
+          <button class="step-btn" onclick="stepCard(${i},1)">+</button>
+        </div>
+      </div>
+      <div class="srow-col">
+        <div class="srow-lbl">Total</div>
+        <div class="srow-total zero" id="tot-${i}">0</div>
+      </div>`;
+    c.appendChild(row);
+  });
+}
+
+function setBall(i,v){
+  ballPts[i]=v;
+  document.getElementById(`bps-${i}`).querySelectorAll('.bps-btn').forEach(b=>{
+    b.classList.remove('sel','usel');
+    if(parseInt(b.textContent)===v)b.classList.add(upsetActive?'usel':'sel');
+  });
+  calcTotal(i);
+}
+function stepCard(i,d){
+  cardPts[i]=Math.max(-10,Math.min(20,(cardPts[i]||0)+d));
+  const el=document.getElementById(`cdp-${i}`);
+  el.textContent=cardPts[i]>0?`+${cardPts[i]}`:cardPts[i];
+  el.className='cdp'+(cardPts[i]>0?' pos':cardPts[i]<0?' neg':'');
+  calcTotal(i);
+}
+function calcTotal(i){
+  const bp=upsetActive?(3-ballPts[i]):ballPts[i];
+  const t=bp+(cardPts[i]||0);
+  const el=document.getElementById(`tot-${i}`);
+  el.textContent=t>0?`+${t}`:t;
+  el.className='srow-total'+(t>0?' pos':t<0?' neg':' zero');
+}
+function toggleUpset(){
+  upsetActive=!upsetActive;updateUpsetUI();
+  players.forEach((_,i)=>{
+    calcTotal(i);
+    document.getElementById(`bps-${i}`).querySelectorAll('.bps-btn').forEach(b=>{
+      if(b.classList.contains('sel')||b.classList.contains('usel')){
+        b.classList.remove('sel','usel');
+        b.classList.add(upsetActive?'usel':'sel');
+      }
+    });
+  });
+}
+function updateUpsetUI(){
+  const t=document.getElementById('upsetToggle'),l=document.getElementById('upsetLabel');
+  t.className='toggle-btn'+(upsetActive?' on':'');
+  l.className='upset-label'+(upsetActive?' on':'');
+  l.textContent=upsetActive?'🔴 UPSET ACTIVE — Furthest ball wins!':'💣 #95 The Upset active?';
+}
+
+function submitRound(){
+  const rd={round:roundNum,scoresBefore:[...scores],ballPts:[...ballPts],cardPts:[...cardPts],upset:upsetActive};
+  players.forEach((_,i)=>{
+    const bp=upsetActive?(3-ballPts[i]):ballPts[i];
+    scores[i]+=bp+(cardPts[i]||0);
+  });
+  history.unshift(rd);roundNum++;
+  document.getElementById('roundNum').textContent=roundNum;
+  document.getElementById('addRoundNum').textContent=roundNum;
+  renderTable();renderPanel();renderHistory();
+  const mx=Math.max(...scores);
+  if(mx>=winTarget){
+    const wi=scores.indexOf(mx);
+    document.getElementById('winName').textContent=players[wi];
+    document.getElementById('winScore').textContent=`${mx} points`;
+    document.getElementById('winScreen').classList.add('show');
+  }
+}
+
+function renderHistory(){
+  const el=document.getElementById('historyList');
+  if(!history.length){el.innerHTML='<div style="font-size:12px;color:var(--muted);padding:8px 0">No rounds yet.</div>';return;}
+  el.innerHTML='';
+  history.forEach((r,hi)=>{
+    const div=document.createElement('div');div.className='hist-round';
+    const ub=r.upset?'<span class="upset-badge">UPSET</span>':'';
+    const rows=players.map((name,i)=>{
+      const bp=r.upset?(3-r.ballPts[i]):r.ballPts[i];
+      const cp=r.cardPts[i]||0;const t=bp+cp;
+      const tc=t>0?'pos':t<0?'neg':'zero';
+      const cpStr=cp!==0?` · card ${cp>0?'+':''}${cp}`:'';
+      return `<div class="hist-row"><div class="hist-name">${esc(name)}</div><div class="hist-detail">ball${r.upset?'↕':''}${r.ballPts[i]}=${bp}${cpStr}</div><div class="hist-tot ${tc}">${t>0?'+':''}${t}</div></div>`;
+    }).join('');
+    div.innerHTML=`<div class="hist-title">Round ${r.round} ${ub}${hi===0?`<button class="undo-btn" onclick="undoLast()">UNDO</button>`:''}</div><div class="hist-rows">${rows}</div>`;
+    el.appendChild(div);
+  });
+}
+
+function undoLast(){
+  if(!history.length)return;
+  const l=history.shift();scores=[...l.scoresBefore];roundNum--;
+  document.getElementById('roundNum').textContent=roundNum;
+  document.getElementById('addRoundNum').textContent=roundNum;
+  renderTable();renderPanel();renderHistory();
+}
+function closeWin(){document.getElementById('winScreen').classList.remove('show');}
+
+function showPage(id){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('page-'+id)?.classList.add('active');
+  document.getElementById('tab-'+id)?.classList.add('active');
+  if(id==='score'&&!gameStarted)showPage('setup');
+}
+function esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+
+initSetup();
+document.getElementById('setupLogo').src='logo.jpg';
+</script>
+</body>
+</html>
